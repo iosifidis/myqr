@@ -1,0 +1,18 @@
+{
+  "name": "QR Vault - Διαχειριστής QR Codes",
+  "short_name": "QR Vault",
+  "description": "Σκανάρετε, αποθηκεύστε και οργανώστε τα QR codes σας με ασφάλεια στο Netlify & Cloud Database.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

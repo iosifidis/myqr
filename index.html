@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="description" content="QR Vault - Σκανάρετε, αποθηκεύστε, οργανώστε και διαχειριστείτε τα QR codes σας εύκολα στο Netlify & Cloud Database." />
+    
+    <!-- PWA meta tags -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="QR Vault" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <title>QR Vault - Διαχείριση & Σκανάρισμα QR</title>
+  </head>
+  <body>
+    <!-- App Container -->
+    <div id="app" class="app-shell">
+      
+      <!-- Top Navigation Header -->
+      <header class="app-header">
+        <div class="header-inner">
+          <div class="brand">
+            <div class="brand-icon">
+              <i data-lucide="qr-code"></i>
+            </div>
+            <div class="brand-info">
+              <h1 class="brand-title">QR Vault</h1>
+              <span id="syncStatusBadge" class="badge-status badge-local" title="Κατάσταση συγχρονισμού">
+                <span class="status-dot"></span>
+                <span class="status-label">Τοπική βάση</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button id="btnOpenManualAdd" class="btn-icon" title="Χειροκίνητη προσθήκη QR" aria-label="Χειροκίνητη προσθήκη">
+              <i data-lucide="plus"></i>
+            </button>
+            <button id="btnOpenSettings" class="btn-icon" title="Ρυθμίσεις Cloud & Βάσης" aria-label="Ρυθμίσεις">
+              <i data-lucide="settings"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="app-main">
+        
+        <!-- PWA Install Banner (dynamic) -->
+        <div id="pwaBanner" class="pwa-banner hidden">
+          <div class="pwa-banner-content">
+            <i data-lucide="smartphone" class="pwa-icon"></i>
+            <div>
+              <strong>Εγκατάσταση Εφαρμογής</strong>
+              <p>Προσθέστε το QR Vault στην αρχική οθόνη του κινητού σας!</p>
+            </div>
+          </div>
+          <div class="pwa-banner-actions">
+            <button id="btnDismissPwa" class="btn-subtle btn-sm">Αργότερα</button>
+            <button id="btnInstallPwa" class="btn-primary btn-sm">Εγκατάσταση</button>
+          </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <section class="toolbar-section">
+          <div class="search-box">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Αναζήτηση με όνομα ή περιεχόμενο..." autocomplete="off" />
+            <button id="btnClearSearch" class="btn-clear hidden" aria-label="Καθαρισμός αναζήτησης">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          <div class="toolbar-stats">
+            <span id="itemsCountBadge">0 QR codes</span>
+            <span class="reorder-tip"><i data-lucide="arrow-up-down"></i> Αλλάξτε σειρά με τα βελάκια ή σύρετε</span>
+          </div>
+        </section>
+
+        <!-- QR Codes List Section -->
+        <section class="list-section">
+          <div id="qrListContainer" class="qr-list" role="list">
+            <!-- Dynamic Items injected here -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-graphic">
+              <i data-lucide="scan-line"></i>
+            </div>
+            <h3>Δεν υπάρχουν αποθηκευμένα QR</h3>
+            <p>Πατήστε το κουμπί σκαναρίσματος για να σαρώσετε με την κάμερα ή προσθέστε χειροκίνητα ένα QR code.</p>
+            <div class="empty-actions">
+              <button id="btnEmptyScan" class="btn-primary">
+                <i data-lucide="camera"></i> Σκανάρισμα τώρα
+              </button>
+              <button id="btnEmptyManual" class="btn-secondary">
+                <i data-lucide="plus"></i> Χειροκίνητη εισαγωγή
+              </button>
+            </div>
+          </div>
+
+          <!-- No Search Results State -->
+          <div id="noResultsState" class="empty-state hidden">
+            <div class="empty-graphic small">
+              <i data-lucide="search"></i>
+            </div>
+            <h4>Δεν βρέθηκαν αποτελέσματα</h4>
+            <p>Δοκιμάστε διαφορετική λέξη αναζήτησης.</p>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Bottom Floating Action Bar for Mobile -->
+      <nav class="bottom-bar">
+        <button id="btnQuickAdd" class="bottom-bar-btn" title="Προσθήκη">
+          <i data-lucide="plus-circle"></i>
+          <span>Νέο QR</span>
+        </button>
+        <button id="btnScanQR" class="fab-scan" title="Σκανάρετε QR με την κάμερα" aria-label="Σκανάρισμα QR">
+          <div class="fab-pulse"></div>
+          <div class="fab-inner">
+            <i data-lucide="scan"></i>
+          </div>
+          <span class="fab-label">Σκανάρισμα</span>
+        </button>
+        <button id="btnBottomSettings" class="bottom-bar-btn" title="Βάση Δεδομένων & Cloud">
+          <i data-lucide="database"></i>
+          <span>Βάση & Cloud</span>
+        </button>
+      </nav>
+
+      <!-- Hidden file input for scanning from image/gallery -->
+      <input type="file" id="fileQrInput" accept="image/*" class="visually-hidden" />
+      <div id="file-scanner-temp" style="display:none;"></div>
+
+      <!-- ================= MODALS ================= -->
+
+      <!-- 1. SCANNER MODAL -->
+      <div id="scannerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+        <div class="modal-card modal-scanner">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <i data-lucide="camera" class="modal-icon"></i>
+              <h3>Σκανάρισμα QR Code</h3>
+            </div>
+            <button id="btnCloseScanner" class="btn-close" aria-label="Κλείσιμο">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="scanner-view-container">
+            <div id="cameraViewport" class="scanner-viewport"></div>
+            
+            <!-- Animated Target Overlay -->
+            <div class="scanner-overlay">
+              <div class="scanner-reticle">
+                <div class="scanner-corner tl"></div>
+                <div class="scanner-corner tr"></div>
+                <div class="scanner-corner bl"></div>
+                <div class="scanner-corner br"></div>
+                <div class="scanner-laser"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scanner-controls">
+            <button id="btnToggleTorch" class="btn-action-round hidden" title="Φακός">
+              <i data-lucide="flashlight"></i>
+            </button>
+            <button id="btnUploadImage" class="btn-pill" title="Επιλογή εικόνας από τη συλλογή">
+              <i data-lucide="image"></i>
+              <span>Από Φωτογραφία</span>
+            </button>
+          </div>
+
+          <p class="scanner-instruction">
+            Στρέψτε την κάμερα προς το QR code ώστε να χωράει στο πλαίσιο.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. SAVE NEW QR MODAL (After scanning or manual) -->
+      <div id="saveModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <i data-lucide="bookmark-plus" class="modal-icon"></i>
+              <h3 id="saveModalTitle">Αποθήκευση QR Code</h3>
+            </div>
+            <button id="btnCloseSaveModal" class="btn-close" aria-label="Κλείσιμο">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <form id="saveQrForm" class="modal-body">
+            <input type="hidden" id="editQrId" value="" />
+            
+            <div class="form-group">
+              <label for="qrNameInput">Όνομα QR <span class="required">*</span></label>
+              <input type="text" id="qrNameInput" placeholder="π.χ. WiFi Σπιτιού, Menu Εστιατορίου, LinkedIn" required maxlength="100" autofocus />
+            </div>
+
+            <div class="form-group">
+              <label for="qrContentInput">Περιεχόμενο (URL ή Κείμενο) <span class="required">*</span></label>
+              <textarea id="qrContentInput" rows="3" placeholder="https://... ή οποιοδήποτε κείμενο" required></textarea>
+            </div>
+
+            <div class="type-detected-preview">
+              <span class="label">Ανιχνεύθηκε τύπος:</span>
+              <span id="detectedTypeBadge" class="badge-type">URL</span>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" id="btnCancelSave" class="btn-secondary">Ακύρωση</button>
+              <button type="submit" id="btnSubmitSave" class="btn-primary">
+                <i data-lucide="check"></i> Αποθήκευση
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 3. QR DETAILS & VIEW MODAL (When clicked) -->
+      <div id="detailsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+        <div class="modal-card modal-details">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <span id="detailsTypeBadge" class="badge-type">URL</span>
+              <h3 id="detailsName">Όνομα QR</h3>
+            </div>
+            <button id="btnCloseDetails" class="btn-close" aria-label="Κλείσιμο">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="modal-body details-body">
+            <!-- QR Canvas Display -->
+            <div class="qr-canvas-wrapper">
+              <canvas id="detailsQrCanvas"></canvas>
+            </div>
+
+            <!-- Content Details Card -->
+            <div class="content-display-box">
+              <div class="content-header">
+                <span class="content-label">Περιεχόμενο</span>
+                <span id="detailsDate" class="content-date">--/--/----</span>
+              </div>
+              <div id="detailsContent" class="content-text-preview" tabindex="0"></div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="details-actions">
+              <a id="btnVisitLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-action-primary hidden">
+                <i data-lucide="external-link"></i> Άνοιγμα Συνδέσμου
+              </a>
+              <button id="btnCopyContent" class="btn-action-outline">
+                <i data-lucide="copy"></i> Αντιγραφή
+              </button>
+              <button id="btnDownloadQr" class="btn-action-outline">
+                <i data-lucide="download"></i> Λήψη PNG
+              </button>
+              <button id="btnEditFromDetails" class="btn-action-outline">
+                <i data-lucide="edit-3"></i> Επεξεργασία
+              </button>
+              <button id="btnDeleteFromDetails" class="btn-action-danger">
+                <i data-lucide="trash-2"></i> Διαγραφή
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. SETTINGS & CLOUD DATABASE MODAL -->
+      <!-- 4. SETTINGS & DATA MODAL -->
+      <div id="settingsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+        <div class="modal-card modal-settings">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <i data-lucide="database" class="modal-icon"></i>
+              <h3>Διαχείριση Δεδομένων & Backup</h3>
+            </div>
+            <button id="btnCloseSettings" class="btn-close" aria-label="Κλείσιμο">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            
+            <!-- SECTION 1: Local Backup & Restore (Offline - No Cloud needed) -->
+            <div class="settings-card backup-highlight-card">
+              <div class="settings-card-header">
+                <div class="settings-card-title">
+                  <i data-lucide="download" class="card-title-icon"></i>
+                  <div>
+                    <h4>Τοπικά Αντίγραφα (Offline Backup & Μεταφορά)</h4>
+                    <span class="badge-offline">100% Τοπική Χρήση • Χωρίς Cloud</span>
+                  </div>
+                </div>
+              </div>
+              <p class="settings-card-desc">
+                Ιδανικό αν δεν επιθυμείτε εξωτερική βάση δεδομένων. Εξάγετε τα QR codes σας σε αρχείο JSON για ασφάλεια ή για να τα μεταφέρετε από τον υπολογιστή στο κινητό σας.
+              </p>
+              <div class="backup-action-buttons">
+                <button type="button" id="btnExportJson" class="btn-secondary btn-backup">
+                  <i data-lucide="download"></i> Εξαγωγή Backup (.json)
+                </button>
+                <button type="button" id="btnImportJsonTrigger" class="btn-secondary btn-backup">
+                  <i data-lucide="upload"></i> Εισαγωγή Backup (.json)
+                </button>
+                <input type="file" id="jsonFileInput" accept=".json,application/json" class="visually-hidden" />
+              </div>
+            </div>
+
+            <!-- SECTION 2: Cloud Sync (Supabase - Optional) -->
+            <div class="settings-card cloud-card">
+              <div class="settings-card-header">
+                <div class="settings-card-title">
+                  <i data-lucide="globe" class="card-title-icon"></i>
+                  <div>
+                    <h4>Cloud Συγχρονισμός (Supabase)</h4>
+                    <span class="badge-optional">Προαιρετικό • Αυτόματο Real-time Sync</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="settings-card-desc">
+                Συνδέστε ένα δωρεάν project από το Supabase για να ενημερώνονται αυτόματα τα QR codes σε όλες τις συσκευές σας ταυτόχρονα.
+              </p>
+
+              <div class="status-callout" id="settingsStatusBox">
+                <span class="status-indicator-dot"></span>
+                <span id="settingsStatusText">Έλεγχος κατάστασης...</span>
+              </div>
+
+              <form id="settingsForm" class="settings-form">
+                <div class="form-group">
+                  <label for="supabaseUrlInput">Project URL (Supabase)</label>
+                  <input type="url" id="supabaseUrlInput" placeholder="https://xyzcompany.supabase.co" autocomplete="off" />
+                </div>
+
+                <div class="form-group">
+                  <label for="supabaseKeyInput">Anon / Public API Key</label>
+                  <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" />
+                </div>
+
+                <div class="settings-actions">
+                  <button type="submit" id="btnSaveSettings" class="btn-primary">
+                    <i data-lucide="check"></i> Αποθήκευση & Σύνδεση
+                  </button>
+                  <button type="button" id="btnSyncLocalToCloud" class="btn-secondary">
+                    <i data-lucide="refresh-cw"></i> Ανέβασμα τοπικών στο Cloud
+                  </button>
+                </div>
+              </form>
+
+              <!-- Guide / SQL instructions Accordion -->
+              <div class="guide-box">
+                <div class="guide-header">
+                  <strong>Οδηγίες δωρεάν ρύθμισης σε 2 λεπτά:</strong>
+                </div>
+                <ol class="guide-steps">
+                  <li>Κάντε δωρεάν εγγραφή στο <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> και δημιουργήστε ένα νέο project.</li>
+                  <li>Πηγαίνετε στο μενού <strong>SQL Editor</strong> και εκτελέστε το παρακάτω script:</li>
+                </ol>
+                
+                <div class="code-box">
+                  <pre><code id="sqlCodeBlock"></code></pre>
+                  <button id="btnCopySql" class="btn-copy-code" title="Αντιγραφή SQL">
+                    <i data-lucide="copy"></i> Αντιγραφή SQL
+                  </button>
+                </div>
+
+                <p class="guide-tip">
+                  3. Αντιγράψτε το <strong>Project URL</strong> και το <strong>Anon Key</strong> από το <em>Project Settings -> API</em> και επικολλήστε τα παραπάνω.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. DELETE CONFIRMATION DIALOG -->
+      <div id="deleteModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+        <div class="modal-card modal-confirm">
+          <div class="confirm-icon-danger">
+            <i data-lucide="trash-2"></i>
+          </div>
+          <h3>Διαγραφή QR Code</h3>
+          <p id="deleteConfirmText">Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το QR code;</p>
+          <div class="confirm-actions">
+            <button id="btnCancelDelete" class="btn-secondary">Ακύρωση</button>
+            <button id="btnConfirmDelete" class="btn-danger">
+              <i data-lucide="trash-2"></i> Διαγραφή
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications Container -->
+      <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    </div>
+
+    <!-- Main Module Script -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
