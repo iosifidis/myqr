@@ -11,7 +11,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="QR Vault" />
 
     <!-- Google Fonts -->
@@ -34,9 +34,9 @@
             </div>
             <div class="brand-info">
               <h1 class="brand-title">QR Vault</h1>
-              <span id="syncStatusBadge" class="badge-status badge-local" title="Κατάσταση συγχρονισμού">
+              <span id="syncStatusBadge" class="badge-status badge-local" title="Τοπική ασφαλής αποθήκευση">
                 <span class="status-dot"></span>
-                <span class="status-label">Τοπική βάση</span>
+                <span class="status-label">Offline Vault</span>
               </span>
             </div>
           </div>
@@ -45,8 +45,8 @@
             <button id="btnOpenManualAdd" class="btn-icon" title="Χειροκίνητη προσθήκη QR" aria-label="Χειροκίνητη προσθήκη">
               <i data-lucide="plus"></i>
             </button>
-            <button id="btnOpenSettings" class="btn-icon" title="Ρυθμίσεις Cloud & Βάσης" aria-label="Ρυθμίσεις">
-              <i data-lucide="settings"></i>
+            <button id="btnOpenSettings" class="btn-icon" title="Αντίγραφα & Μεταφορά" aria-label="Αντίγραφα & Μεταφορά">
+              <i data-lucide="hard-drive"></i>
             </button>
           </div>
         </div>
@@ -120,22 +120,26 @@
 
       </main>
 
-      <!-- Bottom Floating Action Bar for Mobile -->
+      <!-- Bottom Action Bar (Mobile-first Thumb Zone) -->
       <nav class="bottom-bar">
-        <button id="btnQuickAdd" class="bottom-bar-btn" title="Προσθήκη">
+        <button id="btnQuickAdd" class="bottom-bar-btn" title="Χειροκίνητη Προσθήκη">
           <i data-lucide="plus-circle"></i>
           <span>Νέο QR</span>
+        </button>
+        <button id="btnQuickGallery" class="bottom-bar-btn" title="Σκανάρισμα από εικόνα στη συλλογή">
+          <i data-lucide="image"></i>
+          <span>Εικόνα</span>
         </button>
         <button id="btnScanQR" class="fab-scan" title="Σκανάρετε QR με την κάμερα" aria-label="Σκανάρισμα QR">
           <div class="fab-pulse"></div>
           <div class="fab-inner">
             <i data-lucide="scan"></i>
           </div>
-          <span class="fab-label">Σκανάρισμα</span>
+          <span class="fab-label">Κάμερα</span>
         </button>
-        <button id="btnBottomSettings" class="bottom-bar-btn" title="Βάση Δεδομένων & Cloud">
-          <i data-lucide="database"></i>
-          <span>Βάση & Cloud</span>
+        <button id="btnBottomSettings" class="bottom-bar-btn" title="Αντίγραφα & Μεταφορά">
+          <i data-lucide="hard-drive"></i>
+          <span>Backup</span>
         </button>
       </nav>
 
@@ -280,14 +284,13 @@
         </div>
       </div>
 
-      <!-- 4. SETTINGS & CLOUD DATABASE MODAL -->
-      <!-- 4. SETTINGS & DATA MODAL -->
+      <!-- 4. BACKUP & DATA TRANSFER MODAL -->
       <div id="settingsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
         <div class="modal-card modal-settings">
           <div class="modal-header">
             <div class="modal-title-wrap">
-              <i data-lucide="database" class="modal-icon"></i>
-              <h3>Διαχείριση Δεδομένων & Backup</h3>
+              <i data-lucide="hard-drive" class="modal-icon"></i>
+              <h3>Αντίγραφα Ασφαλείας & Μεταφορά</h3>
             </div>
             <button id="btnCloseSettings" class="btn-close" aria-label="Κλείσιμο">
               <i data-lucide="x"></i>
@@ -296,95 +299,60 @@
 
           <div class="modal-body">
             
-            <!-- SECTION 1: Local Backup & Restore (Offline - No Cloud needed) -->
+            <div class="backup-info-banner">
+              <div class="backup-info-icon">
+                <i data-lucide="shield-check"></i>
+              </div>
+              <div class="backup-info-text">
+                <strong>100% Τοπική Αποθήκευση στη Συσκευή</strong>
+                <p>Τα QR codes αποθηκεύονται αποκλειστικά στον browser σας. Για να τα μεταφέρετε από τον υπολογιστή στο κινητό (ή αντίστροφα), χρησιμοποιήστε την Εξαγωγή & Εισαγωγή JSON.</p>
+              </div>
+            </div>
+
+            <!-- EXPORT CARD -->
             <div class="settings-card backup-highlight-card">
               <div class="settings-card-header">
                 <div class="settings-card-title">
                   <i data-lucide="download" class="card-title-icon"></i>
                   <div>
-                    <h4>Τοπικά Αντίγραφα (Offline Backup & Μεταφορά)</h4>
-                    <span class="badge-offline">100% Τοπική Χρήση • Χωρίς Cloud</span>
+                    <h4>Εξαγωγή Αντιγράφου (Export JSON)</h4>
+                    <span class="badge-offline">Λήψη αρχείου backup</span>
                   </div>
                 </div>
               </div>
               <p class="settings-card-desc">
-                Ιδανικό αν δεν επιθυμείτε εξωτερική βάση δεδομένων. Εξάγετε τα QR codes σας σε αρχείο JSON για ασφάλεια ή για να τα μεταφέρετε από τον υπολογιστή στο κινητό σας.
+                Κατεβάστε όλα τα αποθηκευμένα QR codes σας σε ένα ενιαίο αρχείο <code>.json</code>.
               </p>
-              <div class="backup-action-buttons">
-                <button type="button" id="btnExportJson" class="btn-secondary btn-backup">
-                  <i data-lucide="download"></i> Εξαγωγή Backup (.json)
-                </button>
-                <button type="button" id="btnImportJsonTrigger" class="btn-secondary btn-backup">
-                  <i data-lucide="upload"></i> Εισαγωγή Backup (.json)
-                </button>
-                <input type="file" id="jsonFileInput" accept=".json,application/json" class="visually-hidden" />
-              </div>
+              <button type="button" id="btnExportJson" class="btn-primary btn-block">
+                <i data-lucide="download"></i> Εξαγωγή Backup (.json)
+              </button>
             </div>
 
-            <!-- SECTION 2: Cloud Sync (Supabase - Optional) -->
-            <div class="settings-card cloud-card">
+            <!-- IMPORT CARD -->
+            <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-title">
-                  <i data-lucide="globe" class="card-title-icon"></i>
+                  <i data-lucide="upload" class="card-title-icon"></i>
                   <div>
-                    <h4>Cloud Συγχρονισμός (Supabase)</h4>
-                    <span class="badge-optional">Προαιρετικό • Αυτόματο Real-time Sync</span>
+                    <h4>Εισαγωγή Αντιγράφου (Import JSON)</h4>
+                    <span class="badge-offline">Μεταφορά σε αυτή τη συσκευή</span>
                   </div>
                 </div>
               </div>
-
               <p class="settings-card-desc">
-                Συνδέστε ένα δωρεάν project από το Supabase για να ενημερώνονται αυτόματα τα QR codes σε όλες τις συσκευές σας ταυτόχρονα.
+                Επιλέξτε ένα αρχείο <code>.json</code> που είχατε εξάγει για να προσθέσετε αυτόματα τα QR codes σας.
               </p>
+              <button type="button" id="btnImportJsonTrigger" class="btn-secondary btn-block">
+                <i data-lucide="upload"></i> Επιλογή αρχείου JSON
+              </button>
+              <input type="file" id="jsonFileInput" accept=".json,application/json" class="visually-hidden" />
+            </div>
 
-              <div class="status-callout" id="settingsStatusBox">
-                <span class="status-indicator-dot"></span>
-                <span id="settingsStatusText">Έλεγχος κατάστασης...</span>
-              </div>
-
-              <form id="settingsForm" class="settings-form">
-                <div class="form-group">
-                  <label for="supabaseUrlInput">Project URL (Supabase)</label>
-                  <input type="url" id="supabaseUrlInput" placeholder="https://xyzcompany.supabase.co" autocomplete="off" />
-                </div>
-
-                <div class="form-group">
-                  <label for="supabaseKeyInput">Anon / Public API Key</label>
-                  <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" />
-                </div>
-
-                <div class="settings-actions">
-                  <button type="submit" id="btnSaveSettings" class="btn-primary">
-                    <i data-lucide="check"></i> Αποθήκευση & Σύνδεση
-                  </button>
-                  <button type="button" id="btnSyncLocalToCloud" class="btn-secondary">
-                    <i data-lucide="refresh-cw"></i> Ανέβασμα τοπικών στο Cloud
-                  </button>
-                </div>
-              </form>
-
-              <!-- Guide / SQL instructions Accordion -->
-              <div class="guide-box">
-                <div class="guide-header">
-                  <strong>Οδηγίες δωρεάν ρύθμισης σε 2 λεπτά:</strong>
-                </div>
-                <ol class="guide-steps">
-                  <li>Κάντε δωρεάν εγγραφή στο <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> και δημιουργήστε ένα νέο project.</li>
-                  <li>Πηγαίνετε στο μενού <strong>SQL Editor</strong> και εκτελέστε το παρακάτω script:</li>
-                </ol>
-                
-                <div class="code-box">
-                  <pre><code id="sqlCodeBlock"></code></pre>
-                  <button id="btnCopySql" class="btn-copy-code" title="Αντιγραφή SQL">
-                    <i data-lucide="copy"></i> Αντιγραφή SQL
-                  </button>
-                </div>
-
-                <p class="guide-tip">
-                  3. Αντιγράψτε το <strong>Project URL</strong> και το <strong>Anon Key</strong> από το <em>Project Settings -> API</em> και επικολλήστε τα παραπάνω.
-                </p>
-              </div>
-
+            <!-- CLEAR ALL DATA SECTION -->
+            <div class="clear-data-section">
+              <button type="button" id="btnClearAllData" class="btn-subtle-danger">
+                <i data-lucide="trash-2"></i> Διαγραφή όλων των αποθηκευμένων QR
+              </button>
             </div>
 
           </div>

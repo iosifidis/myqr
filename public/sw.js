@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-vault-v1';
+const CACHE_NAME = 'qr-vault-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Avoid caching Supabase API or external data requests
+  // Only handle same-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }

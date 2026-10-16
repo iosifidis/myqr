@@ -45,7 +45,10 @@
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.35);
 
+  --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 /* CSS Reset & Defaults */
@@ -121,7 +124,7 @@ input, textarea {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 12px 18px;
+  padding: calc(14px + var(--safe-top)) calc(18px + var(--safe-right)) 14px calc(18px + var(--safe-left));
 }
 
 .header-inner {
@@ -1172,131 +1175,54 @@ input, textarea {
   font-weight: 600;
 }
 
-.status-indicator-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fbbf24;
-  box-shadow: 0 0 8px #fbbf24;
-}
-
-.status-callout.connected .status-indicator-dot {
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-}
-
-.status-callout.connected {
-  border-color: rgba(16, 185, 129, 0.3);
+/* Backup & Data Modal Styles */
+.backup-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   background: rgba(16, 185, 129, 0.08);
-  color: #34d399;
-}
-
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.settings-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-/* Guide box */
-.guide-box {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(16, 185, 129, 0.22);
   border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
 }
 
-.guide-header {
-  font-size: 0.88rem;
-  color: var(--text-main);
+.backup-info-icon {
+  color: var(--success);
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.guide-steps {
+.backup-info-icon i, .backup-info-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.backup-info-text strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #34d399;
+  margin-bottom: 4px;
+}
+
+.backup-info-text p {
   font-size: 0.82rem;
   color: var(--text-muted);
-  padding-left: 20px;
-  line-height: 1.6;
+  line-height: 1.45;
+  margin: 0;
 }
 
-.guide-steps a {
-  color: #818cf8;
-  text-decoration: underline;
-}
-
-.code-box {
-  position: relative;
-  background: #020617;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.code-box pre {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  color: #cbd5e1;
-  line-height: 1.4;
-}
-
-.btn-copy-code {
-  position: sticky;
-  bottom: 0;
-  float: right;
-  margin-top: 6px;
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-medium);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-main);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-copy-code:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.guide-tip {
-  font-size: 0.8rem;
-  color: var(--text-faint);
-  line-height: 1.4;
-}
-
-.guide-tip code {
-  font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: #e2e8f0;
-}
-
-/* Settings Cards & Backup section */
 .settings-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .backup-highlight-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(139, 92, 246, 0.04) 100%);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-color: rgba(99, 102, 241, 0.28);
 }
 
 .settings-card-header {
@@ -1322,7 +1248,7 @@ input, textarea {
 .card-title-icon {
   width: 20px;
   height: 20px;
-  color: var(--primary);
+  color: var(--accent-primary);
   margin-top: 2px;
   flex-shrink: 0;
 }
@@ -1339,18 +1265,6 @@ input, textarea {
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-.badge-optional {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: #94a3b8;
-  background: rgba(148, 163, 184, 0.12);
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-top: 3px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-}
-
 .settings-card-desc {
   font-size: 0.82rem;
   color: var(--text-muted);
@@ -1358,24 +1272,53 @@ input, textarea {
   margin-bottom: 14px;
 }
 
-.backup-action-buttons {
+.settings-card-desc code {
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #e2e8f0;
+}
+
+.btn-block {
+  width: 100%;
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn-backup {
-  flex: 1;
-  min-width: 160px;
+  align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  font-size: 0.85rem;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 0.92rem;
   font-weight: 600;
+  border-radius: var(--radius-md);
 }
 
-.btn-backup:hover {
-  border-color: var(--primary);
-  color: var(--primary-light);
+.clear-data-section {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-subtle-danger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  color: #f87171;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-subtle-danger:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
 }
 
 /* Confirm Dialog */
@@ -1496,14 +1439,43 @@ input, textarea {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive adjustments */
-@media (max-width: 480px) {
+/* Responsive adjustments for Mobile */
+@media (max-width: 640px) {
+  /* All buttons are moved to the bottom on mobile to avoid notch/battery overlap */
+  .header-actions {
+    display: none !important;
+  }
+
   .app-header {
-    padding: 10px 14px;
+    padding-top: calc(16px + var(--safe-top));
+    padding-bottom: 12px;
+    padding-left: calc(16px + var(--safe-left));
+    padding-right: calc(16px + var(--safe-right));
   }
   
+  .brand {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .brand-title {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+  }
+
+  .bottom-bar {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .bottom-bar-btn {
+    padding: 6px 6px;
+    font-size: 0.7rem;
+    min-width: 52px;
+  }
+
+  .fab-inner {
+    width: 54px;
+    height: 54px;
   }
 
   .qr-card {

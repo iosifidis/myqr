@@ -17,8 +17,6 @@ import {
   Camera,
   Image,
   Flashlight,
-  Database,
-  RefreshCw,
   Smartphone,
   Search,
   ScanLine,
@@ -26,11 +24,12 @@ import {
   PlusCircle,
   BookmarkPlus,
   Upload,
-  Globe,
   Wifi,
   Mail,
   Phone,
-  FileText
+  FileText,
+  HardDrive,
+  ShieldCheck
 } from 'lucide';
 
 import {
@@ -38,14 +37,11 @@ import {
   addQR,
   updateQR,
   deleteQR,
+  clearAllQRs,
   saveOrder,
   detectType,
-  getConfig,
-  saveConfig,
-  testConnection,
-  getSupabaseSql,
-  syncLocalToCloud,
-  isCloudConfigured
+  exportBackupData,
+  importBackupData
 } from './db.js';
 
 import {
@@ -88,8 +84,6 @@ function refreshIcons() {
       Camera,
       Image,
       Flashlight,
-      Database,
-      RefreshCw,
       Smartphone,
       Search,
       ScanLine,
@@ -97,11 +91,12 @@ function refreshIcons() {
       PlusCircle,
       BookmarkPlus,
       Upload,
-      Globe,
       Wifi,
       Mail,
       Phone,
-      FileText
+      FileText,
+      HardDrive,
+      ShieldCheck
     }
   });
 }
@@ -174,16 +169,9 @@ function getTypeBadgeHtml(type) {
 function updateSyncBadge() {
   const badge = document.getElementById('syncStatusBadge');
   if (!badge) return;
-  const isCloud = isCloudConfigured();
-  if (isCloud) {
-    badge.className = 'badge-status badge-cloud';
-    badge.querySelector('.status-label').textContent = 'Cloud Supabase';
-    badge.title = 'Συνδεδεμένο με Cloud Βάση Supabase';
-  } else {
-    badge.className = 'badge-status badge-local';
-    badge.querySelector('.status-label').textContent = 'Τοπική μνήμη';
-    badge.title = 'Αποθηκεύεται τοπικά στη συσκευή. Πατήστε Ρυθμίσεις για Cloud';
-  }
+  badge.className = 'badge-status badge-local';
+  badge.querySelector('.status-label').textContent = 'Offline Vault';
+  badge.title = '100% Τοπική Αποθήκευση στη συσκευή σας';
 }
 
 // Render QR Code List
@@ -589,37 +577,10 @@ function closeDeleteModal() {
   itemPendingDelete = null;
 }
 
-// 5. Settings Modal
-async function openSettingsModal() {
+// 5. Backup & Data Modal
+function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
-  const config = getConfig();
-  const urlInput = document.getElementById('supabaseUrlInput');
-  const keyInput = document.getElementById('supabaseKeyInput');
-  const sqlBlock = document.getElementById('sqlCodeBlock');
-  const statusBox = document.getElementById('settingsStatusBox');
-  const statusText = document.getElementById('settingsStatusText');
-
-  urlInput.value = config.url || '';
-  keyInput.value = config.key || '';
-  sqlBlock.textContent = getSupabaseSql();
-
-  // Test status
-  if (config.url && config.key) {
-    statusText.textContent = 'Έλεγχος σύνδεσης στο Supabase...';
-    statusBox.className = 'status-callout';
-    const res = await testConnection(config.url, config.key);
-    if (res.success) {
-      statusBox.className = 'status-callout connected';
-      statusText.textContent = '🟢 Επιτυχής σύνδεση με το Supabase!';
-    } else {
-      statusBox.className = 'status-callout';
-      statusText.textContent = `⚠️ Σφάλμα σύνδεσης: ${res.error}`;
-    }
-  } else {
-    statusBox.className = 'status-callout';
-    statusText.textContent = '🟠 Λειτουργία τοπικής μνήμης (Offline LocalStorage).';
-  }
-
+  if (!modal) return;
   modal.classList.remove('hidden');
   refreshIcons();
 }
@@ -832,68 +793,23 @@ async function initApp() {
     }
   });
 
-  // 8. Settings & Cloud Supabase Actions
+  // 8. Backup & Data Modal Actions
   const btnOpenSettings = document.getElementById('btnOpenSettings');
   const btnBottomSettings = document.getElementById('btnBottomSettings');
   const btnCloseSettings = document.getElementById('btnCloseSettings');
-  const settingsForm = document.getElementById('settingsForm');
-  const btnCopySql = document.getElementById('btnCopySql');
-  const btnSyncLocalToCloud = document.getElementById('btnSyncLocalToCloud');
+  const btnQuickGallery = document.getElementById('btnQuickGallery');
   const btnExportJson = document.getElementById('btnExportJson');
   const btnImportJsonTrigger = document.getElementById('btnImportJsonTrigger');
   const jsonFileInput = document.getElementById('jsonFileInput');
+  const btnClearAllData = document.getElementById('btnClearAllData');
 
   btnOpenSettings?.addEventListener('click', openSettingsModal);
   btnBottomSettings?.addEventListener('click', openSettingsModal);
   btnCloseSettings?.addEventListener('click', closeSettingsModal);
 
-  btnCopySql?.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(getSupabaseSql());
-      showToast('Το SQL script αντιγράφηκε στο πρόχειρο!', 'success');
-    } catch (e) {
-      showToast('Αποτυχία αντιγραφής', 'error');
-    }
-  });
-
-  settingsForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const url = document.getElementById('supabaseUrlInput').value.trim();
-    const key = document.getElementById('supabaseKeyInput').value.trim();
-
-    if (url && key) {
-      showToast('Έλεγχος σύνδεσης...', 'info');
-      const test = await testConnection(url, key);
-      if (!test.success) {
-        showToast('Σφάλμα σύνδεσης: ' + test.error, 'error', 4500);
-        return;
-      }
-    }
-
-    saveConfig(url, key);
-    updateSyncBadge();
-    showToast('Οι ρυθμίσεις αποθηκεύτηκαν!', 'success');
-
-    // Reload list from newly connected source
-    try {
-      qrItems = await fetchAllQRs();
-      renderList();
-    } catch (e) {
-      console.warn(e);
-    }
-    closeSettingsModal();
-  });
-
-  btnSyncLocalToCloud?.addEventListener('click', async () => {
-    showToast('Μεταφόρτωση δεδομένων στο Supabase...', 'info');
-    const res = await syncLocalToCloud();
-    if (res.success) {
-      showToast(`Μεταφορτώθηκαν ${res.count} QR codes στο Cloud!`, 'success');
-      qrItems = await fetchAllQRs();
-      renderList();
-    } else {
-      showToast('Σφάλμα συγχρονισμού: ' + res.error, 'error', 4000);
-    }
+  // Quick gallery button from bottom bar on mobile
+  btnQuickGallery?.addEventListener('click', () => {
+    fileQrInput?.click();
   });
 
   // Export JSON Backup
@@ -902,12 +818,7 @@ async function initApp() {
       showToast('Δεν υπάρχουν ακόμη αποθηκευμένα QR codes για εξαγωγή.', 'info');
       return;
     }
-    const exportData = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      count: qrItems.length,
-      items: qrItems
-    };
+    const exportData = exportBackupData();
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
@@ -929,34 +840,12 @@ async function initApp() {
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
-        const parsed = JSON.parse(evt.target.result);
-        const list = Array.isArray(parsed) 
-          ? parsed 
-          : (parsed.items || parsed.qrCodes || parsed.data || []);
-
-        if (!Array.isArray(list) || list.length === 0) {
-          throw new Error('Το αρχείο δεν περιέχει έγκυρα δεδομένα QR codes.');
-        }
-
-        let addedCount = 0;
-        for (const item of list) {
-          if (!item) continue;
-          const name = (item.name || item.title || 'Εισαγόμενο QR').trim();
-          const content = (item.content || item.url || item.text || item.value || '').trim();
-          if (content) {
-            await addQR({ name, content });
-            addedCount++;
-          }
-        }
-
-        if (addedCount === 0) {
-          throw new Error('Δεν βρέθηκαν έγκυρα QR codes με περιεχόμενο στο αρχείο.');
-        }
-
+        const res = await importBackupData(evt.target.result);
         qrItems = await fetchAllQRs();
         renderList();
         refreshIcons();
-        showToast(`Εισήχθησαν επιτυχώς ${addedCount} QR codes!`, 'success');
+        showToast(`Εισήχθησαν επιτυχώς ${res.count} QR codes!`, 'success');
+        closeSettingsModal();
       } catch (err) {
         showToast('Σφάλμα εισαγωγής JSON: ' + (err.message || 'Μη έγκυρο αρχείο'), 'error', 4000);
       } finally {
@@ -964,6 +853,22 @@ async function initApp() {
       }
     };
     reader.readAsText(file);
+  });
+
+  // Clear All Data
+  btnClearAllData?.addEventListener('click', async () => {
+    if (!qrItems || qrItems.length === 0) {
+      showToast('Δεν υπάρχουν αποθηκευμένα QR codes για διαγραφή.', 'info');
+      return;
+    }
+    if (window.confirm('ΠΡΟΣΟΧΗ: Θέλετε σίγουρα να διαγράψετε ΟΛΑ τα αποθηκευμένα QR codes; Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.')) {
+      await clearAllQRs();
+      qrItems = [];
+      renderList();
+      refreshIcons();
+      showToast('Όλα τα QR codes διαγράφηκαν.', 'info');
+      closeSettingsModal();
+    }
   });
 
   // 9. Close modals on backdrop click
